@@ -4,6 +4,8 @@
 import { useState, useEffect, useRef } from "react";
 import { toast } from "react-hot-toast";
 import { CloudArrowUpIcon, Bars3Icon, XMarkIcon, SunIcon, MoonIcon } from "@heroicons/react/24/outline";
+import Link from "next/link";
+
 
 export default function Home() {
   const [audioFile, setAudioFile] = useState(null);
@@ -140,12 +142,12 @@ export default function Home() {
 
           {/* Navigation */}
           <nav className="hidden md:flex space-x-6">
-            <a href="/" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-              Home
-            </a>
-            <a href="/about" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-              About
-            </a>
+            <Link href="/" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+  Home
+</Link>
+            <Link href="/about" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+  About
+</Link>
             <a
               href="https://x.ai/api"
               target="_blank"
@@ -187,20 +189,16 @@ export default function Home() {
         {isMenuOpen && (
           <nav className="md:hidden bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
             <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
-              <a
-                href="/"
-                className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Home
-              </a>
-              <a
+              <Link href="/" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" onClick={() => setIsMenuOpen(false)}>
+              Home
+          </Link>
+              <Link
                 href="/about"
                 className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 About
-              </a>
+              </Link>
               <a
                 href="https://x.ai/api"
                 target="_blank"
@@ -447,7 +445,7 @@ export default function Home() {
                   href="mailto:support@x.ai"
                   className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  support@x.ai
+                  support@speech-to-text.kin.ai
                 </a>
               </p>
               <p className="text-sm mt-2">
