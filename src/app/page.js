@@ -2,12 +2,103 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { jsPDF } from "jspdf";
 import { toast } from "react-hot-toast";
 import { CloudArrowUpIcon, Bars3Icon, XMarkIcon, SunIcon, MoonIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 
 
 export default function Home() {
+  const [downloadFormat, setDownloadFormat] = useState("json");
+
+  // Download handler for JSON, TXT, PDF
+  const handleDownloadTranscription = () => {
+    if (!transcription) return;
+    const filename = `transcription-${Date.now()}`;
+    if (downloadFormat === "json") {
+      const blob = new Blob([JSON.stringify(transcription, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${filename}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } else if (downloadFormat === "txt") {
+      const text = transcription.text || "";
+      const blob = new Blob([text], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${filename}.txt`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } else if (downloadFormat === "pdf") {
+      const doc = new jsPDF();
+      const margin = 15;
+      let y = margin;
+      // Helper to load logo as DataURL
+      const loadLogo = (url) => {
+        return new Promise((resolve) => {
+          const img = new window.Image();
+          img.crossOrigin = "Anonymous";
+          img.onload = function () {
+            // Create canvas to get DataURL
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL("image/png"));
+          };
+          img.src = url;
+        });
+      };
+      // Render PDF after logo loads
+      loadLogo("/soundscriptlight.png").then((logoDataUrl) => {
+        // Logo
+        if (logoDataUrl) {
+          doc.addImage(logoDataUrl, "PNG", margin, y, 40, 13);
+        }
+        y += 18;
+        // Title
+        doc.setFontSize(18);
+        doc.setTextColor(36, 41, 46);
+        doc.text("Transcription Report", margin, y);
+        y += 10;
+        doc.setDrawColor(36, 41, 46);
+        doc.setLineWidth(0.5);
+        doc.line(margin, y, 195 - margin, y);
+        y += 7;
+        // Metadata
+        doc.setFontSize(11);
+        doc.setTextColor(70, 70, 70);
+        doc.text(`File: ${audioFile?.name || "-"}`.substring(0, 60), margin, y);
+        y += 6;
+        doc.text(`Language: ${transcription.language || "Unknown"}`, margin, y);
+        y += 6;
+        doc.text(`Confidence: ${transcription.language_confidence != null && !isNaN(transcription.language_confidence) ? `${(transcription.language_confidence * 100).toFixed(1)}%` : "N/A"}`, margin, y);
+        y += 6;
+        doc.text(`Date: ${new Date().toLocaleString()}`, margin, y);
+        y += 10;
+        // Section header
+        doc.setFontSize(13);
+        doc.setTextColor(36, 41, 46);
+        doc.text("Transcription", margin, y);
+        y += 7;
+        doc.setDrawColor(180, 180, 180);
+        doc.setLineWidth(0.2);
+        doc.line(margin, y, 195 - margin, y);
+        y += 8;
+        // Transcription text (styled)
+        doc.setFontSize(12);
+        doc.setTextColor(33, 33, 33);
+        const splitText = doc.splitTextToSize(transcription.text || "No transcription available", 180);
+        doc.text(splitText, margin, y);
+        doc.save(`${filename}.pdf`);
+      });
+    }
+  };
+
   const [audioFile, setAudioFile] = useState(null);
   const [transcription, setTranscription] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -136,8 +227,8 @@ export default function Home() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <CloudArrowUpIcon className="w-8 h-8 text-blue-500 dark:text-blue-400" />
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">AI Transcriber</h1>
+            {/* <h1 className="text-2xl font-bold text-gray-800 dark:text-white">AI Transcriber</h1> */}
+            <img src="/soundscript.png" className="w-24 h-8" alt="SoundScript" />
           </div>
 
           {/* Navigation */}
@@ -148,14 +239,6 @@ export default function Home() {
             <Link href="/about" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
   About
 </Link>
-            <a
-              href="https://x.ai/api"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-            >
-              API
-            </a>
           </nav>
 
           {/* Theme Toggle */}
@@ -326,21 +409,25 @@ export default function Home() {
                 )}
               </div>
             </div>
-            <button
-              onClick={() => {
-                const blob = new Blob([JSON.stringify(transcription, null, 2)], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement("a");
-                link.href = url;
-                link.download = `transcription-${Date.now()}.json`;
-                link.click();
-                URL.revokeObjectURL(url);
-              }}
-              className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              aria-label="Download transcription"
-            >
-              Download Transcription (JSON)
-            </button>
+            <div className="mt-4 flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+              <select
+                value={downloadFormat}
+                onChange={(e) => setDownloadFormat(e.target.value)}
+                className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Select download format"
+              >
+                <option value="json">JSON</option>
+                <option value="txt">TXT</option>
+                <option value="pdf">PDF</option>
+              </select>
+              <button
+                onClick={handleDownloadTranscription}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                aria-label={`Download transcription as ${downloadFormat}`}
+              >
+                Download Transcription ({downloadFormat.toUpperCase()})
+              </button>
+            </div>
           </div>
         )}
 
@@ -392,48 +479,13 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* About Section */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">About AI Transcriber</h3>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center">About<img src="/soundscript.png" className="w-24 h-8" alt="SoundScript" /></h3>
               <p className="text-sm">
-                AI Transcriber uses advanced speech-to-text technology powered by xAI to convert audio files into accurate transcriptions.
+                SoundScript uses advanced speech-to-text technology powered by Elevenlabs ai to convert audio files into accurate transcriptions.
               </p>
             </div>
 
             {/* Links Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Links</h3>
-              <ul className="text-sm space-y-2">
-                <li>
-                  <a
-                    href="https://x.ai"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                  >
-                    xAI Home
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://x.ai/api"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                  >
-                    API Documentation
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://x.ai/grok"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                  >
-                    Learn About Grok
-                  </a>
-                </li>
-              </ul>
-            </div>
 
             {/* Contact Section */}
             <div>
@@ -445,7 +497,7 @@ export default function Home() {
                   href="mailto:support@x.ai"
                   className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  support@speech-to-text.kin.ai
+                  support@soundscript.ai
                 </a>
               </p>
               <p className="text-sm mt-2">
@@ -464,7 +516,7 @@ export default function Home() {
 
           {/* Copyright */}
           <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-4 text-center text-sm">
-            <p>&copy; {new Date().getFullYear()} xAI. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} SoundScript,  All rights reserved.</p>
           </div>
         </div>
       </footer>

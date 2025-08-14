@@ -13,6 +13,7 @@
     "autoprefixer": "^10.4.21",
     "elevenlabs": "^1.59.0",
     "formidable": "^3.5.4",
+    "jspdf": "^3.0.1",
     "next": "15.4.6",
     "postcss": "^8.5.6",
     "react": "19.1.0",
