@@ -1,4 +1,4 @@
-// // // src/app/page.js
+//src/app/page.js
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -248,7 +248,7 @@ export default function Home() {
             aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
           >
             {isDarkMode ? (
-              <SunIcon className="w-6 h-6 text-yellow-400" />
+              <SunIcon className="w-6 h-6 text-white" />
             ) : (
               <MoonIcon className="w-6 h-6 text-gray-600" />
             )}
