@@ -114,13 +114,16 @@ export default function Home() {
     if (savedTheme === "dark") {
       setIsDarkMode(true);
       document.documentElement.classList.add("dark");
+    } else {
+      setIsDarkMode(false);
+      document.documentElement.classList.remove("dark");
     }
   }, []);
 
   // Toggle dark/light mode
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
-    if (!isDarkMode) {
+    if (isDarkMode) {
       document.documentElement.classList.add("dark");
       localStorage.setItem("theme", "dark");
     } else {
@@ -226,9 +229,10 @@ export default function Home() {
       <header className="bg-white dark:bg-gray-800 shadow-md">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
-            {/* <h1 className="text-2xl font-bold text-gray-800 dark:text-white">AI Transcriber</h1> */}
-            <img src="/soundscript.png" className="w-24 h-8" alt="SoundScript" />
+
+          <div className="flex items-center space-x-2 gap-3">
+            <img src="/soundscript.png" alt="kinchat" className="w-24 hidden dark:block" />
+            <img src="/soundscriptlight.png" alt="kinchatdarkmode" className="w-24 block dark:hidden" />
           </div>
 
           {/* Navigation */}
@@ -248,9 +252,11 @@ export default function Home() {
             aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
           >
             {isDarkMode ? (
-              <SunIcon className="w-6 h-6 text-white" />
-            ) : (
               <MoonIcon className="w-6 h-6 text-gray-600" />
+
+            ) : (
+              <SunIcon className="w-6 h-6 text-white" />
+
             )}
           </button>
 
